@@ -9,6 +9,8 @@ from langchain_openai import ChatOpenAI
 import streamlit as st
 from dotenv import load_dotenv
 
+
+
 load_dotenv()
 
 PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
