@@ -40,17 +40,30 @@ def doc_preprocessing():
 
 @st.cache_resource
 def embedding_db():
+    print("Starting embedding_db function")
     embeddings = OpenAIEmbeddings()
+    print("OpenAI Embeddings initialized")
+    
     pinecone.Pinecone(
         api_key=PINECONE_API_KEY,
         environment=PINECONE_ENV
     )
+    print("Pinecone initialized")
+    
     docs_split = doc_preprocessing()
+    print(f"Preprocessed {len(docs_split)} document chunks")
+    
+    if not docs_split:
+        print("No documents to process. Returning None.")
+        return None
+    
+    print("Starting to create Pinecone index")
     doc_db = Pinecone.from_documents(
         docs_split,
         embeddings,
         index_name='marathichatbot',
     )
+    print("Pinecone index created successfully")
     return doc_db
 
 llm = ChatOpenAI()
