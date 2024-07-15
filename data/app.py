@@ -19,29 +19,37 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 
 os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
-# @st.cache_resource
 def doc_preprocessing():
     current_dir = os.path.dirname(os.path.abspath(__file__))
+    print(f"Current directory: {current_dir}")
     
-    loader = DirectoryLoader(
-        current_dir,
-        glob='*.pdf',
-        show_progress=True
-    )
-    docs = loader.load()
-    print('docs loaded')
-    if not docs:
-        print(f"No documents found in {current_dir}")
+    try:
+        loader = DirectoryLoader(
+            current_dir,
+            glob='*.pdf',
+            show_progress=True
+        )
+        print("DirectoryLoader initialized")
+        
+        docs = loader.load()
+        print(f"Documents loaded: {len(docs)}")
+        
+        if not docs:
+            print(f"No documents found in {current_dir}")
+            print(f"Files in directory: {os.listdir(current_dir)}")
+            return []
+        
+        text_splitter = CharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=0
+        )
+        docs_split = text_splitter.split_documents(docs)
+        print(f"Documents split into {len(docs_split)} chunks")
+        
+        return docs_split
+    except Exception as e:
+        print(f"Error in doc_preprocessing: {str(e)}")
         return []
-    else: 
-        print('error')
-    
-    text_splitter = CharacterTextSplitter(
-        chunk_size=1000,
-        chunk_overlap=0
-    )
-    docs_split = text_splitter.split_documents(docs)
-    return docs_split
 
 # @st.cache_resource
 def embedding_db():
