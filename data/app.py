@@ -19,7 +19,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 
 os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
-@st.cache_resource
+# @st.cache_resource
 def doc_preprocessing():
     current_dir = os.path.dirname(os.path.abspath(__file__))
     
