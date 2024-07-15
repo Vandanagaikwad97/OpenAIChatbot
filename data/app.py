@@ -29,6 +29,7 @@ def doc_preprocessing():
         show_progress=True
     )
     docs = loader.load()
+    print('docs loaded')
     if not docs:
         print(f"No documents found in {current_dir}")
         return []
