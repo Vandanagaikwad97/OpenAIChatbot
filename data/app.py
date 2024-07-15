@@ -19,12 +19,18 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
 
 def doc_preprocessing():
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    
     loader = DirectoryLoader(
-        'data/',
-        glob='**/*.pdf',
+        current_dir,
+        glob='*.pdf',
         show_progress=True
     )
     docs = loader.load()
+    if not docs:
+        print(f"No documents found in {current_dir}")
+        return []
+    
     text_splitter = CharacterTextSplitter(
         chunk_size=1000,
         chunk_overlap=0
