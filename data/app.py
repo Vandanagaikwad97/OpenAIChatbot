@@ -29,10 +29,11 @@ def doc_preprocessing():
         show_progress=True
     )
     docs = loader.load()
-    print('done')
     if not docs:
         print(f"No documents found in {current_dir}")
         return []
+    else: 
+        print('error')
     
     text_splitter = CharacterTextSplitter(
         chunk_size=1000,
