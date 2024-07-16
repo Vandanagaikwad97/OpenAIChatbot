@@ -25,14 +25,14 @@ def doc_preprocessing():
         pages = loader.load()
         print(f"Loaded {len(pages)} pages from PDF")
         
-        for i, doc in enumerate(docs):
-            print(f"Document {i + 1} preview: {doc.page_content[:100]}...")
+        for i, page in enumerate(pages):
+            print(f"Page {i + 1} preview: {page.page_content[:100]}...")
         
         text_splitter = CharacterTextSplitter(
             chunk_size=1000,
             chunk_overlap=50
         )
-        docs_split = text_splitter.split_documents(docs)
+        docs_split = text_splitter.split_documents(pages)
         print(f"Documents split into {len(docs_split)} chunks")
         
         return docs_split
@@ -40,57 +40,6 @@ def doc_preprocessing():
         print(f"Error in doc_preprocessing: {str(e)}")
         return []
 
-        
-    #     # Rest of your processing code...
-    # except Exception as e:
-    #     print(f"Error loading PDF: {str(e)}")
-    #     return []
-
-# def doc_preprocessing():
-#     current_dir = '/opt/render/project/src/data'
-#     print(f"Current directory: {current_dir}")
-    
-#     # List all files in the directory
-#     files = os.listdir(current_dir)
-#     print(f"Files in directory: {files}")
-    
-#     # Check for PDF files
-#     pdf_files = [f for f in files if f.endswith('.pdf')]
-#     print(f"PDF files found: {pdf_files}")
-    
-#     if not pdf_files:
-#         print("No PDF files found in the directory!")
-#         return []    
-    # try:
-    #     loader = DirectoryLoader(
-    #         current_dir,
-    #         glob='*.pdf',
-    #         show_progress=True
-    #     )
-    #     print("DirectoryLoader initialized")
-        
-    #     docs = loader.load()
-    #     print(f"Documents loaded: {len(docs)}")
-        
-    #     if not docs:
-    #         print("No documents were loaded by DirectoryLoader!")
-    #         return []
-        
-        # Print the first few characters of each loaded document
-    #     for i, doc in enumerate(docs):
-    #         print(f"Document {i + 1} preview: {doc.page_content[:100]}...")
-        
-    #     text_splitter = CharacterTextSplitter(
-    #         chunk_size=1000,
-    #         chunk_overlap=50
-    #     )
-    #     docs_split = text_splitter.split_documents(docs)
-    #     print(f"Documents split into {len(docs_split)} chunks")
-        
-    #     return docs_split
-    # except Exception as e:
-    #     print(f"Error in doc_preprocessing: {str(e)}")
-    #     return []
 
 # @st.cache_resource
 def embedding_db():
@@ -128,7 +77,34 @@ def translate_to_marathi(text):
     translation = llm.predict(translation_prompt)
     return translation
 
-def retrieval_answer(query):
+# def retrieval_answer(query):
+#     qa = RetrievalQA.from_chain_type(
+#         llm=llm,
+#         chain_type='stuff',
+#         retriever=doc_db.as_retriever(),
+#     )
+#     result = qa.run(query)
+#     marathi_result = translate_to_marathi(result)
+#     return marathi_result
+
+def main():
+    st.title("Marathi Chatbot")
+    
+    # Initialize doc_db for each session
+    doc_db = embedding_db()
+    if doc_db is None:
+        st.error("Unable to initialize document database. Please check your PDF file and try again.")
+        return
+    
+    text_input = st.text_input("तुमचा प्रश्न विचारा...")
+    if st.button("प्रश्न विचारा"):
+        if len(text_input) > 0:
+            st.info("तुमचा प्रश्न: " + text_input)
+            answer = retrieval_answer(text_input, doc_db)
+            st.success(answer)
+
+# Update retrieval_answer function to accept doc_db as an argument
+def retrieval_answer(query, doc_db):
     qa = RetrievalQA.from_chain_type(
         llm=llm,
         chain_type='stuff',
@@ -137,17 +113,6 @@ def retrieval_answer(query):
     result = qa.run(query)
     marathi_result = translate_to_marathi(result)
     return marathi_result
-
-def main():
-    st.title("Marathi Chatbot")
-
-    text_input = st.text_input("तुमचा प्रश्न विचारा...")
-
-    if st.button("प्रश्न विचारा"):
-        if len(text_input) > 0:
-            st.info("तुमचा प्रश्न: " + text_input)
-            answer = retrieval_answer(text_input)
-            st.success(answer)
 
 if __name__ == "__main__":
     main()
