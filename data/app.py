@@ -29,8 +29,8 @@ def doc_preprocessing():
             print(f"Page {i + 1} preview: {page.page_content[:100]}...")
         
         text_splitter = CharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=50
+            chunk_size=2000,
+            chunk_overlap=200
         )
         docs_split = text_splitter.split_documents(pages)
         print(f"Documents split into {len(docs_split)} chunks")
@@ -77,15 +77,21 @@ def translate_to_marathi(text):
     translation = llm.predict(translation_prompt)
     return translation
 
-# def retrieval_answer(query):
-#     qa = RetrievalQA.from_chain_type(
-#         llm=llm,
-#         chain_type='stuff',
-#         retriever=doc_db.as_retriever(),
-#     )
-#     result = qa.run(query)
-#     marathi_result = translate_to_marathi(result)
-#     return marathi_result
+
+# Update retrieval_answer function to accept doc_db as an argument
+def retrieval_answer(query, doc_db):
+    try:
+        qa = RetrievalQA.from_chain_type(
+            llm=llm,
+            chain_type='stuff',
+            retriever=doc_db.as_retriever(search_kwargs={"k": 3}),
+        )
+        result = qa.run(query)
+        return result
+    except Exception as e:
+        print(f"Error in retrieval_answer: {str(e)}")
+        return f"An error occurred: {str(e)}"
+
 
 def main():
     st.title("Marathi Chatbot")
@@ -102,17 +108,6 @@ def main():
             st.info("तुमचा प्रश्न: " + text_input)
             answer = retrieval_answer(text_input, doc_db)
             st.success(answer)
-
-# Update retrieval_answer function to accept doc_db as an argument
-def retrieval_answer(query, doc_db):
-    qa = RetrievalQA.from_chain_type(
-        llm=llm,
-        chain_type='stuff',
-        retriever=doc_db.as_retriever(),
-    )
-    result = qa.run(query)
-    marathi_result = translate_to_marathi(result)
-    return marathi_result
 
 if __name__ == "__main__":
     main()
