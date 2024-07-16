@@ -8,20 +8,27 @@ from langchain.chains import RetrievalQA
 from langchain_openai import ChatOpenAI
 import streamlit as st
 from dotenv import load_dotenv
-
-
-
 load_dotenv()
-
 PINECONE_API_KEY = os.getenv('PINECONE_API_KEY')
 PINECONE_ENV = os.getenv('PINECONE_ENV')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
-
-
 os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
+
 def doc_preprocessing():
-    current_dir = os.path.dirname(os.path.abspath(__file__))
+    current_dir = '/opt/render/project/src/data'
     print(f"Current directory: {current_dir}")
+    
+    # List all files in the directory
+    files = os.listdir(current_dir)
+    print(f"Files in directory: {files}")
+    
+    # Check for PDF files
+    pdf_files = [f for f in files if f.endswith('.pdf')]
+    print(f"PDF files found: {pdf_files}")
+    
+    if not pdf_files:
+        print("No PDF files found in the directory!")
+        return []
     
     try:
         loader = DirectoryLoader(
@@ -35,9 +42,12 @@ def doc_preprocessing():
         print(f"Documents loaded: {len(docs)}")
         
         if not docs:
-            print(f"No documents found in {current_dir}")
-            print(f"Files in directory: {os.listdir(current_dir)}")
+            print("No documents were loaded by DirectoryLoader!")
             return []
+        
+        # Print the first few characters of each loaded document
+        for i, doc in enumerate(docs):
+            print(f"Document {i + 1} preview: {doc.page_content[:100]}...")
         
         text_splitter = CharacterTextSplitter(
             chunk_size=1000,
