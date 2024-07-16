@@ -14,44 +14,23 @@ PINECONE_ENV = os.getenv('PINECONE_ENV')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 os.environ['OPENAI_API_KEY'] = OPENAI_API_KEY
 
+from langchain_community.document_loaders import PyPDFLoader
+
 def doc_preprocessing():
     current_dir = '/opt/render/project/src/data'
-    print(f"Current directory: {current_dir}")
-    
-    # List all files in the directory
-    files = os.listdir(current_dir)
-    print(f"Files in directory: {files}")
-    
-    # Check for PDF files
-    pdf_files = [f for f in files if f.endswith('.pdf')]
-    print(f"PDF files found: {pdf_files}")
-    
-    if not pdf_files:
-        print("No PDF files found in the directory!")
-        return []
+    pdf_path = os.path.join(current_dir, 'test_info.pdf')
     
     try:
-        loader = DirectoryLoader(
-            current_dir,
-            glob='*.pdf',
-            show_progress=True
-        )
-        print("DirectoryLoader initialized")
+        loader = PyPDFLoader(pdf_path)
+        pages = loader.load()
+        print(f"Loaded {len(pages)} pages from PDF")
         
-        docs = loader.load()
-        print(f"Documents loaded: {len(docs)}")
-        
-        if not docs:
-            print("No documents were loaded by DirectoryLoader!")
-            return []
-        
-        # Print the first few characters of each loaded document
         for i, doc in enumerate(docs):
             print(f"Document {i + 1} preview: {doc.page_content[:100]}...")
         
         text_splitter = CharacterTextSplitter(
             chunk_size=1000,
-            chunk_overlap=0
+            chunk_overlap=50
         )
         docs_split = text_splitter.split_documents(docs)
         print(f"Documents split into {len(docs_split)} chunks")
@@ -60,6 +39,58 @@ def doc_preprocessing():
     except Exception as e:
         print(f"Error in doc_preprocessing: {str(e)}")
         return []
+
+        
+        # Rest of your processing code...
+    except Exception as e:
+        print(f"Error loading PDF: {str(e)}")
+        return []
+
+# def doc_preprocessing():
+#     current_dir = '/opt/render/project/src/data'
+#     print(f"Current directory: {current_dir}")
+    
+#     # List all files in the directory
+#     files = os.listdir(current_dir)
+#     print(f"Files in directory: {files}")
+    
+#     # Check for PDF files
+#     pdf_files = [f for f in files if f.endswith('.pdf')]
+#     print(f"PDF files found: {pdf_files}")
+    
+#     if not pdf_files:
+#         print("No PDF files found in the directory!")
+#         return []    
+    # try:
+    #     loader = DirectoryLoader(
+    #         current_dir,
+    #         glob='*.pdf',
+    #         show_progress=True
+    #     )
+    #     print("DirectoryLoader initialized")
+        
+    #     docs = loader.load()
+    #     print(f"Documents loaded: {len(docs)}")
+        
+    #     if not docs:
+    #         print("No documents were loaded by DirectoryLoader!")
+    #         return []
+        
+        # Print the first few characters of each loaded document
+    #     for i, doc in enumerate(docs):
+    #         print(f"Document {i + 1} preview: {doc.page_content[:100]}...")
+        
+    #     text_splitter = CharacterTextSplitter(
+    #         chunk_size=1000,
+    #         chunk_overlap=50
+    #     )
+    #     docs_split = text_splitter.split_documents(docs)
+    #     print(f"Documents split into {len(docs_split)} chunks")
+        
+    #     return docs_split
+    # except Exception as e:
+    #     print(f"Error in doc_preprocessing: {str(e)}")
+    #     return []
 
 # @st.cache_resource
 def embedding_db():
