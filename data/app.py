@@ -2,7 +2,6 @@ from langchain_community.document_loaders import DirectoryLoader
 from langchain.text_splitter import CharacterTextSplitter
 import os
 import pinecone
-import time
 from langchain_community.vectorstores import Pinecone
 from langchain_openai import OpenAIEmbeddings
 from langchain.chains import RetrievalQA
@@ -53,37 +52,22 @@ def embedding_db():
     )
     print("Pinecone initialized")
     
-    index_name = 'marathichatbot'
-    if index_name not in pinecone.list_indexes():
-        print(f"Creating new index: {index_name}")
-        pinecone.create_index(index_name, dimension=1536)
-    else:
-        print(f"Index {index_name} already exists")
+    docs_split = doc_preprocessing()
+    print(f"Preprocessed {len(docs_split)} document chunks")
     
-    index = pinecone.Index(index_name)
-    stats = index.describe_index_stats()
-    print(f"Index stats: {stats}")
+    if not docs_split:
+        print("No documents to process. Returning None.")
+        return None
     
-    if stats['total_vector_count'] == 0:
-        docs_split = doc_preprocessing()
-        print(f"Preprocessed {len(docs_split)} document chunks")
-        
-        if not docs_split:
-            print("No documents to process. Returning None.")
-            return None
-        
-        print("Starting to create Pinecone index")
-        doc_db = Pinecone.from_documents(
-            docs_split,
-            embeddings,
-            index_name=index_name,
-        )
-    else:
-        print("Using existing Pinecone index")
-        doc_db = Pinecone.from_existing_index(index_name, embeddings)
-    
-    print("Pinecone index ready")
+    print("Starting to create Pinecone index")
+    doc_db = Pinecone.from_documents(
+        docs_split,
+        embeddings,
+        index_name='marathichatbot',
+    )
+    print("Pinecone index created successfully")
     return doc_db
+
 llm = ChatOpenAI()
 doc_db = embedding_db()
 
@@ -96,18 +80,12 @@ def translate_to_marathi(text):
 # Update retrieval_answer function to accept doc_db as an argument
 def retrieval_answer(query, doc_db):
     try:
-        retriever = doc_db.as_retriever(search_kwargs={"k": 3})
-        docs = retriever.get_relevant_documents(query)
-        if docs:
-            qa = RetrievalQA.from_chain_type(
-                llm=llm,
-                chain_type='stuff',
-                retriever=retriever,
-            )
-            result = qa.run(query)
-        else:
-            print("No relevant documents found. Falling back to general knowledge.")
-            result = llm.predict(f"Please answer this question to the best of your ability: {query}")
+        qa = RetrievalQA.from_chain_type(
+            llm=llm,
+            chain_type='stuff',
+            retriever=doc_db.as_retriever(search_kwargs={"k": 3}),
+        )
+        result = qa.run(query)
         return result
     except Exception as e:
         print(f"Error in retrieval_answer: {str(e)}")
@@ -117,10 +95,8 @@ def retrieval_answer(query, doc_db):
 def main():
     st.title("Marathi Chatbot")
     
-    start_time = time.time()
+    # Initialize doc_db for each session
     doc_db = embedding_db()
-    print(f"Time to initialize doc_db: {time.time() - start_time:.2f} seconds")
-    
     if doc_db is None:
         st.error("Unable to initialize document database. Please check your PDF file and try again.")
         return
@@ -129,16 +105,8 @@ def main():
     if st.button("प्रश्न विचारा"):
         if len(text_input) > 0:
             st.info("तुमचा प्रश्न: " + text_input)
-            
-            start_time = time.time()
-            english_answer = retrieval_answer(text_input, doc_db)
-            print(f"Time to retrieve answer: {time.time() - start_time:.2f} seconds")
-            
-            start_time = time.time()
-            marathi_answer = translate_to_marathi(english_answer)
-            print(f"Time to translate: {time.time() - start_time:.2f} seconds")
-            
-            st.success(marathi_answer)
+            answer = retrieval_answer(text_input, doc_db)
+            st.success(answer)
 
-if __name__ == "__main__":
+if name == "main":
     main()
