@@ -41,10 +41,10 @@ def doc_preprocessing():
         return []
 
         
-        # Rest of your processing code...
-    except Exception as e:
-        print(f"Error loading PDF: {str(e)}")
-        return []
+    #     # Rest of your processing code...
+    # except Exception as e:
+    #     print(f"Error loading PDF: {str(e)}")
+    #     return []
 
 # def doc_preprocessing():
 #     current_dir = '/opt/render/project/src/data'
