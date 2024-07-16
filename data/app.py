@@ -108,5 +108,5 @@ def main():
             answer = retrieval_answer(text_input, doc_db)
             st.success(answer)
 
-if name == "main":
-   main()
+if __name__ == "__main__":
+    main()
