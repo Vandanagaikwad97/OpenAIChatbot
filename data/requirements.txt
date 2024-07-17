@@ -10,3 +10,4 @@ streamlit
 tiktoken
 langchain-community
 unstructured[pdf]
+python 
