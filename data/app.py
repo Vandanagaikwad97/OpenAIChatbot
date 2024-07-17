@@ -86,7 +86,9 @@ def retrieval_answer(query, doc_db):
             retriever=doc_db.as_retriever(search_kwargs={"k": 3}),
         )
         result = qa.run(query)
-        return result
+        marathi_result = translate_to_marathi(result)
+        return marathi_result
+        # return result
     except Exception as e:
         print(f"Error in retrieval_answer: {str(e)}")
         return f"An error occurred: {str(e)}"
