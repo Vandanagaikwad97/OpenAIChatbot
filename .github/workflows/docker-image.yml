@@ -21,6 +21,6 @@ jobs:
       run: docker login -u $DOCKERHUB_USERNAME -p $DOCKERHUB_PASSWORD
       
     - name: Build the Docker image
-      run: docker build -t asawari27/chatbot -f data/Dockerfile .
+      run: docker build -t asawari27/chatbot .
     - name: Push to Dockerhub
       run: docker push asawari27/chatbot:latest
